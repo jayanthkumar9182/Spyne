@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Video Captioner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .video-player {
+            width: 100%;
+        }
+        .caption-form {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Add Captions to Your Video</h1>
+        <form id="video-form">
+            <label for="video-url">Video URL:</label>
+            <input type="text" id="video-url" name="video-url" required>
+            <button type="submit">Load Video</button>
+        </form>
+        
+        <video id="video" class="video-player" controls>
+            Your browser does not support HTML5 video.
+        </video>
+        
+        <div class="caption-form">
+            <h2>Add Captions</h2>
+            <div id="captions-container">
+                <div class="caption">
+                    <label for="start-time-0">Start Time (seconds):</label>
+                    <input type="number" id="start-time-0" name="start-time" required>
+                    <label for="end-time-0">End Time (seconds):</label>
+                    <input type="number" id="end-time-0" name="end-time" required>
+                    <label for="text-0">Caption Text:</label>
+                    <input type="text" id="text-0" name="text" required>
+                </div>
+            </div>
+            <button type="button" id="add-caption">Add Another Caption</button>
+            <button type="button" id="display-captions">Display Captions</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('video-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const videoUrl = document.getElementById('video-url').value;
+            const videoElement = document.getElementById('video');
+            videoElement.src = videoUrl;
+        });
+
+        let captionIndex = 1;
+
+        document.getElementById('add-caption').addEventListener('click', function() {
+            const captionsContainer = document.getElementById('captions-container');
+            const newCaption = document.createElement('div');
+            newCaption.className = 'caption';
+            newCaption.innerHTML = `
+                <label for="start-time-${captionIndex}">Start Time (seconds):</label>
+                <input type="number" id="start-time-${captionIndex}" name="start-time" required>
+                <label for="end-time-${captionIndex}">End Time (seconds):</label>
+                <input type="number" id="end-time-${captionIndex}" name="end-time" required>
+                <label for="text-${captionIndex}">Caption Text:</label>
+                <input type="text" id="text-${captionIndex}" name="text" required>
+            `;
+            captionsContainer.appendChild(newCaption);
+            captionIndex++;
+        });
+
+        document.getElementById('display-captions').addEventListener('click', function() {
+            const captions = [];
+            const captionsElements = document.querySelectorAll('.caption');
+            captionsElements.forEach((captionElement, index) => {
+                const startTime = document.getElementById(`start-time-${index}`).value;
+                const endTime = document.getElementById(`end-time-${index}`).value;
+                const text = document.getElementById(`text-${index}`).value;
+                captions.push({ startTime: parseFloat(startTime), endTime: parseFloat(endTime), text: text });
+            });
+
+            const videoElement = document.getElementById('video');
+            videoElement.addEventListener('timeupdate', function() {
+                const currentTime = videoElement.currentTime;
+                const captionElement = document.getElementById('current-caption');
+                const currentCaption = captions.find(caption => currentTime >= caption.startTime && currentTime <= caption.endTime);
+                if (currentCaption) {
+                    if (!captionElement) {
+                        const newCaptionElement = document.createElement('div');
+                        newCaptionElement.id = 'current-caption';
+                        newCaptionElement.style.position = 'absolute';
+                        newCaptionElement.style.bottom = '50px';
+                        newCaptionElement.style.left = '50%';
+                        newCaptionElement.style.transform = 'translateX(-50%)';
+                        newCaptionElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                        newCaptionElement.style.color = 'white';
+                        newCaptionElement.style.padding = '5px 10px';
+                        document.body.appendChild(newCaptionElement);
+                    }
+                    document.getElementById('current-caption').innerText = currentCaption.text;
+                } else {
+                    if (captionElement) {
+                        document.getElementById('current-caption').remove();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
